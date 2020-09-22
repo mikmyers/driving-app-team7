@@ -19,3 +19,26 @@ jobs:
       run: dotnet build  ./apis/poi/poi.sln --configuration Release --no-restore
     - name: Test
       run: dotnet test  ./apis/poi/poi.sln --no-restore --verbosity normal
+
+  error:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Throw error in PowerShell script
+        run: |
+          throw 'something failed';
+      - name: The job has failed
+        uses: stefanstranger/azuredevops-bug-action@v1
+        if: failure()
+        with:
+          OrganizationName: "OHTeam7"
+          PAT: "PAT"
+          ProjectName: "driving-app-team7"
+          AreaPath: "driving-app-team7\\Automation"
+          IterationPath: "driving-app-team7"
+          GithubToken: "GithubToken"
+          WorkflowFileName: "poi-api.yml"
+        env:
+          PAT: ${{ secrets.PAT}}
+          GithubToken: ${{ secrets.githubtoken}}
