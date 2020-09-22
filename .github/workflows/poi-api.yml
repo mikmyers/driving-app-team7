@@ -11,7 +11,7 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-      working-directory: ./apis/poi  
+      working-directory: /apis/poi  
 
     steps:
     - uses: actions/checkout@v2
@@ -20,7 +20,7 @@ jobs:
       with:
         dotnet-version: 3.1.301
     - name: Install dependencies
-      run: dotnet restore
+      run: dotnet restore /apis/poi/poi.sln
     - name: Build
       run: dotnet build --configuration Release --no-restore
     - name: Test
