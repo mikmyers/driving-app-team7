@@ -9,7 +9,7 @@
 
 ### Running the unit tests
 
-Big mistery.
+Didn't work the first time :)
 
 ### Running the Integration Test
 
