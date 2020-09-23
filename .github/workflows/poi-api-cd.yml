@@ -6,6 +6,11 @@ on:
     paths:
       - 'apis/poi/**'
 
+  workflow_dispatch:
+    branches: [ master ]
+    paths:
+      - 'apis/poi/**'
+
 jobs:
   build:
 
