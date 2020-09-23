@@ -54,7 +54,7 @@ jobs:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
     - name: Deploy the image to App Service
-    - uses: azure/webapps-deploy@v2
+      uses: azure/webapps-deploy@v2
       with:
         app-name: 'api-poi'
         images: '${{ ACRNAME }}/api-poi:${{ BASEIMAGETAG }}'
