@@ -27,7 +27,7 @@ jobs:
 
     # Variables
     - name: Setup variables
-    - run: |
+      run: |
         $ACRNAME = 'openhack0gl551n4acr'
         $BASEIMAGETAG = ${{ github_sha }}
 
