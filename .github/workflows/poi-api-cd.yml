@@ -24,21 +24,13 @@ jobs:
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    # Variables
-    - name: Setup variables
-      run: |
-        $ACRNAME = 'openhack0gl551n4acr'
-        $BASEIMAGETAG = ${{ github_sha }}
-
     #- working-directory: ./apis/poi/web
 
     - name: Azure CLI script
       uses: azure/CLI@v1
       with:
         azcliversion: 2.0.72
-        inlineScript: |
-            az acr build --image "devopsoh/api-poi:${BASEIMAGETAG}" --registry $ACRNAME --file Dockerfile ./apis/poi/web/
+        inlineScript: az acr build --image "devopsoh/api-poi:${GITHUB_SHA}" --registry 'openhack0gl551n4acr' --file Dockerfile ./apis/poi/web/
 
   release:
     needs: build
@@ -57,7 +49,7 @@ jobs:
       uses: azure/webapps-deploy@v2
       with:
         app-name: 'api-poi'
-        images: '${{ ACRNAME }}/api-poi:${{ BASEIMAGETAG }}'
+        images: 'openhack0gl551n4acr/api-poi:${{ GITHUB_SHA }}'
 
     - name: Report a bug in AzDO
       uses: ./.github/actions/azuredevops-bug-action
