@@ -29,8 +29,10 @@ jobs:
       uses: azure/CLI@v1
       with:
         azcliversion: 2.0.72
-        inlineScript: az acr build --image "devopsoh/api-poi:${GITHUB_SHA}" --registry 'openhack0gl551n4acr' --file Dockerfile .
-        working-directory: ./apis/poi/web
+        inlineScript: |
+          cd './apis/poi/web'
+          az acr build --image "devopsoh/api-poi:${GITHUB_SHA}" --registry 'openhack0gl551n4acr' --file Dockerfile .
+       # working-directory: ./apis/poi/web
 
   release:
     needs: build
