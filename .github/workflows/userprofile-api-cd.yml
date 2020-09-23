@@ -49,7 +49,8 @@ jobs:
     - name: Deploy the image to App Service
       uses: azure/webapps-deploy@v2
       with:
-        app-name: 'openhack0gl551n4userprofile/staging'
+        app-name: 'openhack0gl551n4userprofile'
+        slot-name: 'staging'
         images: 'openhack0gl551n4acr/api-userprofile:${{ github.sha }}'
 
     - name: Report a bug in AzDO
@@ -66,3 +67,10 @@ jobs:
       env:
         PAT: ${{ secrets.PAT}}
         GithubToken: ${{ secrets.githubtoken}}
+
+#    - name: Swap
+#     uses: azure/CLI@v1
+#     with:
+#       azcliversion: 2.0.72
+#       inlineScript: |
+#         az webapp deployment slot swap -g openhack0gl551n4rg -n openhack0gl551n4userprofile --slot staging --target-slot production
