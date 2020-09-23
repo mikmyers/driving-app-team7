@@ -24,13 +24,13 @@ jobs:
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
-    #- working-directory: ./apis/poi/web
+    - working-directory: ./apis/poi/web
 
     - name: Azure CLI script
       uses: azure/CLI@v1
       with:
         azcliversion: 2.0.72
-        inlineScript: az acr build --image "devopsoh/api-poi:${GITHUB_SHA}" --registry 'openhack0gl551n4acr' --file Dockerfile ./apis/poi/web/
+        inlineScript: az acr build --image "devopsoh/api-poi:${GITHUB_SHA}" --registry 'openhack0gl551n4acr' --file Dockerfile .
 
   release:
     needs: build
