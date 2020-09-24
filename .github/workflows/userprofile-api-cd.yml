@@ -96,8 +96,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Run validation script
-      run: bash ./tools/polling.sh $staging_url
+   # - name: Run validation script
+   #   run: bash ./tools/polling.sh $staging_url
+
+    - name: curl
+      uses: wei/curl@master
+      with:
+        args: $staging_url
 
     - name: Report a bug in AzDO
       uses: ./.github/actions/azuredevops-bug-action
@@ -150,8 +155,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
-    - name: Run validation script
-      run: bash ./tools/polling.sh $production_url
+   # - name: Run validation script
+   #   run: bash ./tools/polling.sh $production_url
+
+    - name: curl
+      uses: wei/curl@master
+      with:
+        args: $production_url
 
     - name: Swap
       if: ${{ failure() }}
