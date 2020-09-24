@@ -4,12 +4,12 @@ env:
   production_url: https://openhack0gl551n4poi.azurewebsites.net/api/healthcheck/trips
 on:
   push:
-    branches: [ master ]
+    branches: [ apitrips2 ]
     paths:
       - 'apis/trips/**'
 
   workflow_dispatch:
-    branches: [ master ]
+    branches: [ apitrips2 ]
     paths:
       - 'apis/trips/**'
 
