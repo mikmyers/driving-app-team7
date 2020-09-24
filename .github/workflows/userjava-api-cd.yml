@@ -1,0 +1,75 @@
+name: Userjava API CD
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'apis/userjava/**'
+
+  workflow_dispatch:
+    branches: [ master ]
+    paths:
+      - 'apis/userjava/**''
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    # Authenticate to AZ CLI
+    - name: Log in with Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Azure CLI script
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.0.72
+        inlineScript: |
+          cd './apis/userjava/**''
+          az acr build --image "devopsoh/api-userjava:${GITHUB_SHA}" --registry 'openhack0gl551n4acr' --file Dockerfile .
+  release:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    # Authenticate to AZ CLI
+    - name: Log in with Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy the image to App Service
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'openhack0gl551n4userjava'
+        slot-name: 'staging'
+        images: 'openhack0gl551n4acr/api-userjava:${{ github.sha }}'
+
+    - name: Report a bug in AzDO
+      uses: ./.github/actions/azuredevops-bug-action
+      if: failure()
+      with:
+        OrganizationName: "OHTeam7"
+        PAT: "PAT"
+        ProjectName: "driving-app-team7"
+        AreaPath: "driving-app-team7\\Automation"
+        IterationPath: "driving-app-team7"
+        GithubToken: "GithubToken"
+        WorkflowFileName: "userjava-api-cd.yml"
+      env:
+        PAT: ${{ secrets.PAT}}
+        GithubToken: ${{ secrets.githubtoken}}
+
+#     - name: Swap
+#      uses: azure/CLI@v1
+#      with:
+#       azcliversion: 2.0.72
+#       inlineScript: |
+#         az webapp deployment slot swap -g openhack0gl551n4rg -n openhack0gl551n4userprofile --slot staging --target-slot production
