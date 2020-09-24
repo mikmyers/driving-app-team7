@@ -1,4 +1,7 @@
 name: POI API CD
+env:
+  staging_url: https://openhack0gl551n4poi-staging.azurewebsites.net/api/healthcheck/user
+  production_url: https://openhack0gl551n4poi.azurewebsites.net/api/healthcheck/user
 
 on:
   push:
@@ -12,6 +15,7 @@ on:
       - 'apis/poi/**'
 
 jobs:
+
   build:
 
     runs-on: ubuntu-latest
@@ -32,9 +36,24 @@ jobs:
         inlineScript: |
           cd './apis/poi/web'
           az acr build --image "devopsoh/api-poi:${GITHUB_SHA}" --registry 'openhack0gl551n4acr' --file Dockerfile .
-       # working-directory: ./apis/poi/web
 
-  release:
+    # Report a Bug is it fails
+    - name: Report a bug in AzDO
+      uses: ./.github/actions/azuredevops-bug-action
+      if: failure()
+      with:
+        OrganizationName: "OHTeam7"
+        PAT: "PAT"
+        ProjectName: "driving-app-team7"
+        AreaPath: "driving-app-team7\\Automation"
+        IterationPath: "driving-app-team7"
+        GithubToken: "GithubToken"
+        WorkflowFileName: "poi-api-cd.yml"
+      env:
+        PAT: ${{ secrets.PAT}}
+        GithubToken: ${{ secrets.githubtoken}}
+
+  deploy:
     needs: build
 
     runs-on: ubuntu-latest
@@ -47,12 +66,15 @@ jobs:
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+    # Deploy to Staging
     - name: Deploy the image to App Service
       uses: azure/webapps-deploy@v2
       with:
         app-name: 'openhack0gl551n4poi'
+        slot-name: 'staging'
         images: 'openhack0gl551n4acr/api-poi:${{ github.sha }}'
 
+    # Report a Bug is it fails
     - name: Report a bug in AzDO
       uses: ./.github/actions/azuredevops-bug-action
       if: failure()
@@ -63,7 +85,99 @@ jobs:
         AreaPath: "driving-app-team7\\Automation"
         IterationPath: "driving-app-team7"
         GithubToken: "GithubToken"
-        WorkflowFileName: "poi-api.yml"
+        WorkflowFileName: "poi-api-cd.yml"
+      env:
+        PAT: ${{ secrets.PAT}}
+        GithubToken: ${{ secrets.githubtoken}}
+        
+  validate_staging:
+    needs: deploy
+    runs-on: ubuntu-latest
+
+    steps:
+
+    # Run validation script
+    - name: Run validation script
+      uses: actions/checkout@v2
+      run:  ./tools/polling.sh $staging_url
+
+    # Report a Bug is it fails
+    - name: Report a bug in AzDO
+      uses: ./.github/actions/azuredevops-bug-action
+      if: failure()
+      with:
+        OrganizationName: "OHTeam7"
+        PAT: "PAT"
+        ProjectName: "driving-app-team7"
+        AreaPath: "driving-app-team7\\Automation"
+        IterationPath: "driving-app-team7"
+        GithubToken: "GithubToken"
+        WorkflowFileName: "poi-api-cd.yml"
+      env:
+        PAT: ${{ secrets.PAT}}
+        GithubToken: ${{ secrets.githubtoken}}
+
+swapslots:
+    needs: validate_staging
+    runs-on: ubuntu-latest
+
+    steps:
+
+    # Swap the Slots - Blue-Green
+    - name: Swap Slots
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.0.72
+        inlineScript: |
+        az webapp deployment slot swap -g openhack0gl551n4rg -n openhack0gl551n4poi --slot staging --target-slot production
+
+    # Report a Bug is it fails
+    - name: Report a bug in AzDO
+      uses: ./.github/actions/azuredevops-bug-action
+      if: failure()
+      with:
+        OrganizationName: "OHTeam7"
+        PAT: "PAT"
+        ProjectName: "driving-app-team7"
+        AreaPath: "driving-app-team7\\Automation"
+        IterationPath: "driving-app-team7"
+        GithubToken: "GithubToken"
+        WorkflowFileName: "poi-api-cd.yml"
+      env:
+        PAT: ${{ secrets.PAT}}
+        GithubToken: ${{ secrets.githubtoken}}
+
+validate_prod:
+    needs: swapslots
+    runs-on: ubuntu-latest
+
+    steps:
+
+    # Run validation script
+    - name: Run validation script
+      uses: actions/checkout@v2
+      run:  ./tools/polling.sh $production_url
+
+    -name: Swap
+    if: ${{ failure() }}
+    uses: azure/CLI@v1
+    with:
+      azcliversion: 2.0.72
+      inlineScript: |
+      az webapp deployment slot swap -g openhack0gl551n4rg -n openhack0gl551n4poi --slot production --target-slot staging
+
+    # Report a Bug is it fails
+    - name: Report a bug in AzDO
+      uses: ./.github/actions/azuredevops-bug-action
+      if: failure()
+      with:
+        OrganizationName: "OHTeam7"
+        PAT: "PAT"
+        ProjectName: "driving-app-team7"
+        AreaPath: "driving-app-team7\\Automation"
+        IterationPath: "driving-app-team7"
+        GithubToken: "GithubToken"
+        WorkflowFileName: "poi-api-cd.yml"
       env:
         PAT: ${{ secrets.PAT}}
         GithubToken: ${{ secrets.githubtoken}}
