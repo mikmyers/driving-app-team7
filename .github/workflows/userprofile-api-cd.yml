@@ -95,7 +95,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Run validation script
-      run: ./tools/polling.sh $staging_url
+      run: /tools/polling.sh $staging_url
 
     - name: Report a bug in AzDO
       uses: ./.github/actions/azuredevops-bug-action
@@ -149,7 +149,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Run validation script
-      run: ./tools/polling.sh $production_url
+      run: /tools/polling.sh $production_url
 
     - name: Swap
       if: ${{ failure() }}
