@@ -1,5 +1,7 @@
 name: Trips API CD
-
+env:  
+  staging_url: https://openhack0gl551n4trips-staging.azurewebsites.net/api/healthcheck/trips
+  production_url: https://openhack0gl551n4poi.azurewebsites.net/api/healthcheck/trips
 on:
   push:
     branches: [ master ]
@@ -68,9 +70,26 @@ jobs:
         PAT: ${{ secrets.PAT}}
         GithubToken: ${{ secrets.githubtoken}}
 
-#    - name: Swap
-#     uses: azure/CLI@v1
-#     with:
-#       azcliversion: 2.0.72
-#       inlineScript: |
-#         az webapp deployment slot swap -g openhack0gl551n4rg -n openhack0gl551n4userprofile --slot staging --target-slot production
+# validate staging url
+    - name: Validate
+      run: ./polling.sh $staging_url
+
+# swap slots
+    - name: Swap
+     uses: azure/CLI@v1
+     with:
+       azcliversion: 2.0.72
+       inlineScript: |
+         az webapp deployment slot swap -g openhack0gl551n4rg -n openhack0gl551n4userprofile --slot staging --target-slot production
+
+# validate production url
+    - name: Validate
+      run: ./polling.sh $production_url
+      if: failure()
+      with:
+        azcliversion: 2.0.72
+        inlineScript: |
+          az webapp deployment slot swap -g openhack0gl551n4rg -n openhack0gl551n4userprofile --slot production --target-slot staging
+
+
+
