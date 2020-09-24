@@ -114,8 +114,6 @@ jobs:
         GithubToken: ${{ secrets.githubtoken}}
 
 
-
-  # swap slots
   swap_slots:
     needs: validate_stage
     runs-on: ubuntu-latest
@@ -143,7 +141,6 @@ jobs:
         PAT: ${{ secrets.PAT}}
         GithubToken: ${{ secrets.githubtoken}}
 
-  # validate production url
   validate_swap_prod:
     needs: swap_slots
     runs-on: ubuntu-latest
