@@ -125,6 +125,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v2
+
+    # Authenticate to AZ CLI
+    - name: Log in with Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}    
+
     - name: Swap
       uses: azure/CLI@v1
       with:
@@ -154,6 +162,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+
+    # Authenticate to AZ CLI
+    - name: Log in with Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}    
 
    # - name: Run validation script
    #   run: bash ./tools/polling.sh $production_url
