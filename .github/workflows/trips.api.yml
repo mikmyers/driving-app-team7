@@ -37,9 +37,24 @@ jobs:
           cd './apis/trips'
           az acr build --image "devopsoh/api-trips:${GITHUB_SHA}" --registry 'openhack0gl551n4acr' --file Dockerfile .
 
-  release:
+    - name: Report a bug in AzDO
+      uses: ./.github/actions/azuredevops-bug-action
+      if: failure()
+      with:
+        OrganizationName: "OHTeam7"
+        PAT: "PAT"
+        ProjectName: "driving-app-team7"
+        AreaPath: "driving-app-team7\\Automation"
+        IterationPath: "driving-app-team7"
+        GithubToken: "GithubToken"
+        WorkflowFileName: "trips-api-cd.yml"
+      env:
+        PAT: ${{ secrets.PAT}}
+        GithubToken: ${{ secrets.githubtoken}}
+  
+  
+  deploy_stage:
     needs: build
-
     runs-on: ubuntu-latest
 
     steps:
@@ -73,23 +88,91 @@ jobs:
         GithubToken: ${{ secrets.githubtoken}}
 
 # validate staging url
-    - name: Validate
-      run: ./polling.sh $staging_url
+  validate_stage:
+    needs: deploy_stage
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Run validation script
+      run: /tools/polling.sh $staging_url
+
+    - name: Report a bug in AzDO
+      uses: ./.github/actions/azuredevops-bug-action
+      if: failure()
+      with:
+        OrganizationName: "OHTeam7"
+        PAT: "PAT"
+        ProjectName: "driving-app-team7"
+        AreaPath: "driving-app-team7\\Automation"
+        IterationPath: "driving-app-team7"
+        GithubToken: "GithubToken"
+        WorkflowFileName: "trips-api-cd.yml"
+      env:
+        PAT: ${{ secrets.PAT}}
+        GithubToken: ${{ secrets.githubtoken}}
+
+
 
 # swap slots
-    - name: Swap
-      uses: azure/CLI@v1
-      with:
-       azcliversion: 2.0.72
-       inlineScript: |
-         az webapp deployment slot swap -g openhack0gl551n4rg -n openhack0gl551n4userprofile --slot staging --target-slot production
+swap_slots:
+  needs: validate_stage
+  runs-on: ubuntu-latest
+
+  steps:
+  - name: Swap
+    uses: azure/CLI@v1
+    with:
+      azcliversion: 2.0.72
+      inlineScript: |
+        az webapp deployment slot swap -g openhack0gl551n4rg -n openhack0gl551n4userprofile --slot staging --target-slot production
+
+  - name: Report a bug in AzDO
+    uses: ./.github/actions/azuredevops-bug-action
+    if: failure()
+    with:
+      OrganizationName: "OHTeam7"
+      PAT: "PAT"
+      ProjectName: "driving-app-team7"
+      AreaPath: "driving-app-team7\\Automation"
+      IterationPath: "driving-app-team7"
+      GithubToken: "GithubToken"
+      WorkflowFileName: "trips-api-cd.yml"
+    env:
+      PAT: ${{ secrets.PAT}}
+      GithubToken: ${{ secrets.githubtoken}}
 
 # validate production url
-    - name: ValidateProduction
-      run: ./polling.sh $production_url
-      if: ${{ failure() }}
-      uses: azure/CLI@v1
-      with:
-        azcliversion: 2.0.72
-        inlineScript: |
-          az webapp deployment slot swap -g openhack0gl551n4rg -n openhack0gl551n4userprofile --slot production --target-slot staging
+validate_swap_prod:
+  needs: swap_slots
+  runs-on: ubuntu-latest
+
+  steps:
+  - uses: actions/checkout@v2
+
+  - name: Run validation script
+    run: /tools/polling.sh $production_url
+
+  - name: Swap
+    if: ${{ failure() }}
+    uses: azure/CLI@v1
+    with:
+      azcliversion: 2.0.72
+      inlineScript: |
+        az webapp deployment slot swap -g openhack0gl551n4rg -n openhack0gl551n4userprofile --slot production --target-slot staging
+
+  - name: Report a bug in AzDO
+    uses: ./.github/actions/azuredevops-bug-action
+    if: failure()
+    with:
+      OrganizationName: "OHTeam7"
+      PAT: "PAT"
+      ProjectName: "driving-app-team7"
+      AreaPath: "driving-app-team7\\Automation"
+      IterationPath: "driving-app-team7"
+      GithubToken: "GithubToken"
+      WorkflowFileName: "trips-api-cd.yml"
+    env:
+      PAT: ${{ secrets.PAT}}
+      GithubToken: ${{ secrets.githubtoken}}
