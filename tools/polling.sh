@@ -4,6 +4,7 @@ declare -i duration=1
 declare hasUrl=""
 declare endpoint
 
+
 usage() {
     cat <<END
     polling.sh [-i] [-h] endpoint
