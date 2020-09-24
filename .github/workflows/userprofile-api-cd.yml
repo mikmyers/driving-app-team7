@@ -72,7 +72,7 @@ jobs:
       with:
         app-name: 'openhack0gl551n4userprofile'
         slot-name: 'staging'
-        images: '${{ registry_url }}/${{ repo_url }}:${{ github.sha }}'
+        images: '${{ env.registry_url }}/${{ env.repo_url }}:${{ github.sha }}'
 
     - name: Report a bug in AzDO
       uses: ./.github/actions/azuredevops-bug-action
