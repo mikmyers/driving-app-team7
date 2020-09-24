@@ -1,0 +1,95 @@
+name: Trips API CD
+env:  
+  staging_url: https://openhack0gl551n4trips-staging.azurewebsites.net/api/healthcheck/trips
+  production_url: https://openhack0gl551n4poi.azurewebsites.net/api/healthcheck/trips
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - 'apis/trips/**'
+
+  workflow_dispatch:
+    branches: [ master ]
+    paths:
+      - 'apis/trips/**'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    # Authenticate to AZ CLI
+    - name: Log in with Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Azure CLI script
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.0.72
+        inlineScript: |
+          cd './apis/trips'
+          az acr build --image "devopsoh/api-trips:${GITHUB_SHA}" --registry 'openhack0gl551n4acr' --file Dockerfile .
+
+  release:
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    # Authenticate to AZ CLI
+    - name: Log in with Azure
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Deploy the image to App Service
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: 'openhack0gl551n4trips'
+        slot-name: 'staging'
+        images: 'openhack0gl551n4acr/api-trips:${{ github.sha }}'
+
+    - name: Report a bug in AzDO
+      uses: ./.github/actions/azuredevops-bug-action
+      if: failure()
+      with:
+        OrganizationName: "OHTeam7"
+        PAT: "PAT"
+        ProjectName: "driving-app-team7"
+        AreaPath: "driving-app-team7\\Automation"
+        IterationPath: "driving-app-team7"
+        GithubToken: "GithubToken"
+        WorkflowFileName: "trips-api-cd.yml"
+      env:
+        PAT: ${{ secrets.PAT}}
+        GithubToken: ${{ secrets.githubtoken}}
+
+# validate staging url
+    - name: Validate
+      run: ./polling.sh $staging_url
+
+# swap slots
+    - name: Swap
+     uses: azure/CLI@v1
+     with:
+       azcliversion: 2.0.72
+       inlineScript: |
+         az webapp deployment slot swap -g openhack0gl551n4rg -n openhack0gl551n4userprofile --slot staging --target-slot production
+
+# validate production url
+    - name: ValidateProduction
+      run: ./polling.sh $production_url
+      if: failure()
+      with:
+        azcliversion: 2.0.72
+        inlineScript: |
+          az webapp deployment slot swap -g openhack0gl551n4rg -n openhack0gl551n4userprofile --slot production --target-slot staging
+
+
+
