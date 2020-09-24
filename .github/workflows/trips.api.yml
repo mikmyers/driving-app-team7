@@ -87,7 +87,7 @@ jobs:
 # validate production url
     - name: ValidateProduction
       run: ./polling.sh $production_url
-      if: failure()
+      if: ${{ failure() }}
       with:
         azcliversion: 2.0.72
         inlineScript: |
