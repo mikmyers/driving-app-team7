@@ -4,7 +4,7 @@ env:
   staging_url: https://openhack0gl551n4userprofile-staging.azurewebsites.net/api/healthcheck/user
   production_url: https://openhack0gl551n4userprofile.azurewebsites.net/api/healthcheck/user
   registry_url: openhack0gl551n4acr.azurecr.io
-  repo_url: api-userprofile
+  repo_url: devopsoh/api-userprofile
 
 on:
   push:
